@@ -1,103 +1,42 @@
-plugins {
-    id 'net.fabricmc.fabric-loom-remap' version '1.14.10'
-    id 'maven-publish'
-}
+name: Build AutoBuild
 
-// ========================================
-// THÔNG TIN MOD
-// ========================================
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
-def minecraftVersion = project.findProperty('minecraft_version') ?: '1.21.11'
-def yarnMappings = project.findProperty('yarn_mappings') ?: '1.21.11+build.4'
-def loaderVersion = project.findProperty('loader_version') ?: '0.18.4'
-def fabricApiVersion = project.findProperty('fabric_api_version') ?: '0.141.1+1.21.11'
+permissions:
+  contents: read
 
-version = project.findProperty('mod_version') ?: '1.0.0'
-group = project.findProperty('maven_group') ?: 'vn.autobuild'
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-base {
-    archivesName = project.findProperty('archives_base_name') ?: 'AutoBuild'
-}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-// ========================================
-// REPOSITORIES
-// ========================================
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
 
-repositories {
-    maven {
-        name = 'Fabric'
-        url = 'https://maven.fabricmc.net/'
-    }
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14'
 
-    mavenCentral()
-}
+      - name: Build AutoBuild
+        run: gradle clean build
 
-// ========================================
-// DEPENDENCIES
-// ========================================
-
-dependencies {
-    minecraft "com.mojang:minecraft:${minecraftVersion}"
-
-    mappings "net.fabricmc:yarn:${yarnMappings}:v2"
-
-    modImplementation "net.fabricmc:fabric-loader:${loaderVersion}"
-
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabricApiVersion}"
-}
-
-// ========================================
-// JAVA CONFIGURATION
-// ========================================
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-
-    withSourcesJar()
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.release = 21
-}
-
-// ========================================
-// RESOURCE PROCESSING
-// ========================================
-
-processResources {
-    inputs.property 'version', project.version
-
-    filesMatching('fabric.mod.json') {
-        expand(
-            'version': project.version
-        )
-    }
-}
-
-// ========================================
-// JAR CONFIGURATION
-// ========================================
-
-jar {
-    from('LICENSE') {
-        rename {
-            "${it}_${base.archivesName.get()}"
-        }
-    }
-}
-
-// ========================================
-// MAVEN PUBLISH
-// ========================================
-
-publishing {
-    publications {
-        create('mavenJava', MavenPublication) {
-            artifactId = base.archivesName.get()
-            from components.java
-        }
-    }
-}
+      - name: Upload AutoBuild JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoBuild-JAR
+          path: build/libs/*.jar
+          if-no-files-found: error
