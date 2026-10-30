@@ -1,1 +1,17 @@
-
+{
+  "schemaVersion": 1,
+  "id": "autobuild",
+  "version": "${version}",
+  "name": "AutoBuild",
+  "description": "Client-side AutoBuild menu prototype for Minecraft 1.21.11.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["vn.autobuild.AutoBuildClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
