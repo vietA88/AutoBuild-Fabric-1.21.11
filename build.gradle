@@ -1,5 +1,5 @@
 plugins {
-    id 'net.fabricmc.fabric-loom-remap' version '1.13.6'
+    id 'net.fabricmc.fabric-loom-remap' version '1.14.10'
     id 'maven-publish'
 }
 
@@ -10,7 +10,12 @@ base {
     archivesName = project.archives_base_name
 }
 
-repositories { }
+repositories {
+    maven {
+        url = 'https://maven.fabricmc.net/'
+    }
+    mavenCentral()
+}
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -20,19 +25,20 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.version
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand 'version': project.version
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.release = 21
     options.encoding = 'UTF-8'
+    options.release = 21
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
     withSourcesJar()
 }
